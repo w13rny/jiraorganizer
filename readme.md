@@ -1,8 +1,12 @@
 # Jira Organizer
 
-This simple script helps to organize and manage tasks in Jira.
+This simple script helps to organize and manage tasks in Jira:
 
-## Installation
+* adds "Backend" component for each task that has `[B]` in its name (summary)
+* adds "Frontend" component for each task that has `[F]` in its name (summary)
+* adds "designer" label for each task that has `[D]` in its name (summary) 
+
+## Installation & initial configuration
 
 ### Prerequisites
 
@@ -11,8 +15,8 @@ version `Python 3.9`.
 
 You can check your Python version using command:
 
-```
-$ python -v
+```commandline
+python -v
 ```
 
 ### Creating virtualenv and installing dependencies
@@ -21,26 +25,26 @@ Use `virtualenv` to create isolated Python environment for this app.
 
 1. Install `virtualenv` if you don't have it:
 
-```
-$ pip install virtualenv
+```commandline
+pip install virtualenv
 ```
 
 2. Clone this repository and create a virtual environment:
 
-```
-$ git clone https://github.com/w13rny/jiraorganizer.git
-$ cd jiraorganizer
-$ virtualenv venv
+```commandline
+git clone https://github.com/w13rny/jiraorganizer.git
+cd jiraorganizer
+virtualenv venv
 ```
 
 3. Activate virtual environment and install the Python dependencies with `pip`:
 
-```
-$ source venv/bin/activate
-$ pip install -r requirements.txt
+```commandline
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-## Configuration
+### Setting environmental variables
 
 Create `.env` file in main directory and fill it with following data:
 
@@ -64,12 +68,35 @@ Run script using command with arguments:
 
 Example:
 
-```
-$ python main.py --project ABC --delta 48
+```commandline
+python main.py --project ABC --delta 48
 ```
 
 When you finish using the app on virtual environment, remember to deactivate it in console:
 
+```commandline
+deactivate
 ```
-$ deactivate
+
+## Customize script
+
+At the beginning of the code in `main.py` there are 2 lists of tuples:
+
 ```
+COMPONENTS = [
+    ("[B]", "Backend"),
+    ("[F]", "Frontend"),
+]
+
+LABELS = [
+    ("[D]", "designer"),
+]
+```
+
+Each tuple stands for:
+
+```
+("text to search in issue summary", "component/label name that will be added when text is found")
+```
+
+Once you know this formula, you can easily add table values to customize the script to your needs.

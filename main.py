@@ -10,6 +10,10 @@ COMPONENTS = [
     ("[F]", "Frontend"),
 ]
 
+LABELS = [
+    ("[D]", "designer"),
+]
+
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='This simple script helps to organize and manage tasks in Jira.')
@@ -52,22 +56,38 @@ def parse_jira_credentials() -> Jira:
     return jira_obj
 
 
-def strategy_add_components(issues: dict, jira_obj: Jira):
-    for issue in issues:
-        issue_summary = issue['fields']['summary']
-        issue_components = []
-        if issue['fields']['components']:
-            for issue_component in issue['fields']['components']:
-                issue_components.append(issue_component['name'])
-        for COMPONENT in COMPONENTS:
-            if COMPONENT[0] in issue_summary and COMPONENT[1] not in issue_components:
-                issue_key = issue['key']
-                fields = {"components": [{"add": {"name": COMPONENT[1]}}]}
-                try:
-                    jira_obj.edit_issue(issue_key, fields, notify_users=False)
-                    logging.info(f"Issue {issue_key}: {issue_summary} - added component: {COMPONENT[1]}")
-                except Exception as exc:
-                    logging.error(f"Error while updating issue {issue_key}: {exc}")
+def strategy_add_components(issue: dict, jira_obj: Jira):
+    issue_summary = issue['fields']['summary']
+    issue_current_components = []
+    if issue['fields']['components']:
+        for issue_component in issue['fields']['components']:
+            issue_current_components.append(issue_component['name'])
+    for COMPONENT in COMPONENTS:
+        if COMPONENT[0] in issue_summary and COMPONENT[1] not in issue_current_components:
+            issue_key = issue['key']
+            fields = {"components": [{"add": {"name": COMPONENT[1]}}]}
+            try:
+                jira_obj.edit_issue(issue_key, fields, notify_users=False)
+                logging.info(f"Issue {issue_key}: {issue_summary} - added component: {COMPONENT[1]}")
+            except Exception as exc:
+                logging.error(f"Error while updating issue {issue_key}: {exc}")
+
+
+def strategy_add_labels(issue: dict, jira_obj: Jira):
+    issue_summary = issue['fields']['summary']
+    issue_current_labels = []
+    if issue['fields']['labels']:
+        for issue_label in issue['fields']['labels']:
+            issue_current_labels.append(issue_label['name'])
+    for LABEL in LABELS:
+        if LABEL[0] in issue_summary and LABEL[1] not in issue_current_labels:
+            issue_key = issue['key']
+            fields = {"labels": [{"add": LABEL[1]}]}
+            try:
+                jira_obj.edit_issue(issue_key, fields, notify_users=False)
+                logging.info(f"Issue {issue_key}: {issue_summary} - added label: {LABEL[1]}")
+            except Exception as exc:
+                logging.error(f"Error while updating issue {issue_key}: {exc}")
 
 
 if __name__ == '__main__':
@@ -83,7 +103,9 @@ if __name__ == '__main__':
         args = parse_arguments()
         jira = parse_jira_credentials()
         jql_request = f'project = "{args.project}" AND updated >= -{args.delta}h'
-        recently_modified_issues = jira.jql(jql_request)
-        strategy_add_components(recently_modified_issues['issues'], jira)
+        recently_updated_issues = jira.jql(jql_request)
+        for recently_updated_issue in recently_updated_issues['issues']:
+            strategy_add_components(recently_updated_issue, jira)
+            strategy_add_labels(recently_updated_issue, jira)
     except Exception as e:
         logging.critical(f"Critical error occurred: {e}")
