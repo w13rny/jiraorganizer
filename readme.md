@@ -7,7 +7,7 @@ This simple script helps to organize and manage tasks in Jira.
 ### Prerequisites
 
 This app was should work with `Python 3` interpreters. If you run into compatibility issues, try to use exact
-version `Python 3.8.2`.
+version `Python 3.9`.
 
 You can check your Python version using command:
 
