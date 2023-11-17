@@ -57,10 +57,15 @@ JIRA_API_TOKEN=''
 
 ## Run script
 
-Run script using command:
+Run script using command with arguments:
+
+* `--project` - Jira project name,
+* `--delta` - script processes only tasks with limit since the last update (pass value in hours, default=24).
+
+Example:
 
 ```
-$ python main.py
+$ python main.py --project ABC --delta 48
 ```
 
 When you finish using the app on virtual environment, remember to deactivate it in console:

@@ -1,8 +1,15 @@
 import argparse
+import json
+import logging
 import os
 
 from atlassian import Jira
 from dotenv import load_dotenv
+
+COMPONENTS = [
+    ("[B]", "Backend"),
+    ("[F]", "Frontend"),
+]
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -10,12 +17,14 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         '--project',
         type=str,
-        help='Jira project name')
+        help='Jira project name'
+    )
     parser.add_argument(
         '--delta',
         type=int,
         help='script processes only tasks with limit since the last update (pass value in hours, default=24)',
-        default=24)
+        default=24
+    )
     arguments = parser.parse_args()
     return arguments
 
@@ -44,12 +53,38 @@ def parse_jira_credentials() -> Jira:
     return jira_obj
 
 
+def strategy_add_components(issues: dict, jira_obj: Jira):
+    for issue in issues:
+        issue_summary = issue['fields']['summary']
+        issue_components = []
+        if issue['fields']['components']:
+            for issue_component in issue['fields']['components']:
+                issue_components.append(issue_component['name'])
+        for COMPONENT in COMPONENTS:
+            if COMPONENT[0] in issue_summary and COMPONENT[1] not in issue_components:
+                issue_key = issue['key']
+                fields = {"components": [{"add": {"name": COMPONENT[1]}}]}
+                try:
+                    jira_obj.edit_issue(issue_key, fields, notify_users=False)
+                    logging.info(f"Issue {issue_key}: {issue_summary} - added component: {COMPONENT[1]}")
+                except Exception as exc:
+                    logging.error(f"Error while updating issue {issue_key}: {exc}")
+
+
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('log.txt', mode='w'),
+            logging.StreamHandler()
+        ]
+    )
     try:
         args = parse_arguments()
         jira = parse_jira_credentials()
         jql_request = f'project = "{args.project}" AND updated >= -{args.delta}h'
-        issues = jira.jql(jql_request)
-        print(issues)
+        recently_modified_issues = jira.jql(jql_request)
+        strategy_add_components(recently_modified_issues['issues'], jira)
     except Exception as e:
-        print(f"Error occurred: {e}")
+        logging.critical(f"Critical error occurred: {e}")
