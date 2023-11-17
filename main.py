@@ -5,8 +5,8 @@ import os
 if __name__ == '__main__':
     load_dotenv()
     jira = Jira(
-        url=os.environ.get('ATLASSIAN_URL'),
-        username=os.environ.get('ATLASSIAN_USERNAME'),
-        password=os.environ.get('ATLASSIAN_API_TOKEN'),
+        url=os.environ.get('JIRA_URL'),
+        username=os.environ.get('JIRA_USERNAME'),
+        password=os.environ.get('JIRA_TOKEN'),
         cloud=True
     )
