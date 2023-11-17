@@ -99,4 +99,4 @@ Each tuple stands for:
 ("text to search in issue summary", "component/label name that will be added when text is found")
 ```
 
-Once you know this formula, you can easily add table values to customize the script to your needs.
+Once you know this formula, you can easily modify `COMPONENTS` and `LABELS` tables to customize the script.
