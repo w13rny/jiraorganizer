@@ -15,7 +15,18 @@ LABELS = [
 ]
 
 
-def parse_arguments() -> argparse.Namespace:
+def configure_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('log.txt', mode='w'),
+            logging.StreamHandler()
+        ]
+    )
+
+
+def parse_command_line_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='This simple script helps to organize and manage tasks in Jira.')
     parser.add_argument(
         '--project',
@@ -56,6 +67,24 @@ def parse_jira_credentials() -> Jira:
     return jira_obj
 
 
+def get_jira_issues(jql_query: str, jira_obj: Jira) -> list[dict]:
+    logging.info(f"Searching issues using following JQL: {jql_query}")
+    start_at = 0
+    issues = []
+    while True:
+        request = jira_obj.jql(jql_query, start=start_at, limit=100)
+        issues += request['issues']
+        start_at = request['startAt']
+        max_results = request['maxResults']
+        total = request['total']
+        if start_at + max_results < total:
+            start_at = start_at + max_results
+        else:
+            break
+    logging.info(f"Number of issues found: {len(issues)}")
+    return issues
+
+
 def strategy_add_components(issue: dict, jira_obj: Jira):
     issue_summary = issue['fields']['summary']
     issue_current_components = []
@@ -78,7 +107,7 @@ def strategy_add_labels(issue: dict, jira_obj: Jira):
     issue_current_labels = []
     if issue['fields']['labels']:
         for issue_label in issue['fields']['labels']:
-            issue_current_labels.append(issue_label['name'])
+            issue_current_labels.append(issue_label)
     for LABEL in LABELS:
         if LABEL[0] in issue_summary and LABEL[1] not in issue_current_labels:
             issue_key = issue['key']
@@ -91,20 +120,13 @@ def strategy_add_labels(issue: dict, jira_obj: Jira):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler('log.txt', mode='w'),
-            logging.StreamHandler()
-        ]
-    )
     try:
-        args = parse_arguments()
+        configure_logging()
+        args = parse_command_line_arguments()
         jira = parse_jira_credentials()
         jql_request = f'project = "{args.project}" AND updated >= -{args.delta}h'
-        recently_updated_issues = jira.jql(jql_request)
-        for recently_updated_issue in recently_updated_issues['issues']:
+        recently_updated_issues = get_jira_issues(jql_request, jira)
+        for recently_updated_issue in recently_updated_issues:
             strategy_add_components(recently_updated_issue, jira)
             strategy_add_labels(recently_updated_issue, jira)
     except Exception as e:
