@@ -129,5 +129,6 @@ if __name__ == '__main__':
         for recently_updated_issue in recently_updated_issues:
             strategy_add_components(recently_updated_issue, jira)
             strategy_add_labels(recently_updated_issue, jira)
+        logging.info(f"Issues organization completed successfully.")
     except Exception as e:
         logging.critical(f"Critical error occurred: {e}")
