@@ -51,8 +51,7 @@ def check_environment_variables():
         if os.environ.get(env_key) is None:
             env_keys_missing.append(env_key)
     if env_keys_missing:
-        error_message = "Following values not provided in .env file: "
-        error_message += ", ".join(env_keys_missing)
+        error_message = "Following values not provided in .env file: {}".format(", ".join(env_keys_missing))
         raise Exception(error_message)
 
 
@@ -92,12 +91,13 @@ def strategy_add_components(issue: dict, jira_obj: Jira):
         for issue_component in issue['fields']['components']:
             issue_current_components.append(issue_component['name'])
     for COMPONENT in COMPONENTS:
-        if COMPONENT[0] in issue_summary and COMPONENT[1] not in issue_current_components:
+        shortcut, component_name = COMPONENT
+        if shortcut in issue_summary and component_name not in issue_current_components:
             issue_key = issue['key']
-            fields = {"components": [{"add": {"name": COMPONENT[1]}}]}
+            fields = {"components": [{"add": {"name": component_name}}]}
             try:
                 jira_obj.edit_issue(issue_key, fields, notify_users=False)
-                logging.info(f"Issue {issue_key}: {issue_summary} - added component: {COMPONENT[1]}")
+                logging.info(f"Issue {issue_key}: {issue_summary} - added component: {component_name}")
             except Exception as exc:
                 logging.error(f"Error while updating issue {issue_key}: {exc}")
 
@@ -109,12 +109,13 @@ def strategy_add_labels(issue: dict, jira_obj: Jira):
         for issue_label in issue['fields']['labels']:
             issue_current_labels.append(issue_label)
     for LABEL in LABELS:
-        if LABEL[0] in issue_summary and LABEL[1] not in issue_current_labels:
+        shortcut, label_name = LABEL
+        if shortcut in issue_summary and label_name not in issue_current_labels:
             issue_key = issue['key']
-            fields = {"labels": [{"add": LABEL[1]}]}
+            fields = {"labels": [{"add": label_name}]}
             try:
                 jira_obj.edit_issue(issue_key, fields, notify_users=False)
-                logging.info(f"Issue {issue_key}: {issue_summary} - added label: {LABEL[1]}")
+                logging.info(f"Issue {issue_key}: {issue_summary} - added label: {label_name}")
             except Exception as exc:
                 logging.error(f"Error while updating issue {issue_key}: {exc}")
 
