@@ -120,6 +120,19 @@ def strategy_add_labels(issue: dict, jira_obj: Jira):
                 logging.error(f"Error while updating issue {issue_key}: {exc}")
 
 
+def strategy_remove_assignee_when_issue_is_done(issue: dict, jira_obj: Jira):
+    issue_status = issue['fields']['status']['name']
+    issue_assignee = issue['fields']['assignee']
+    if issue_status.lower() == "done" and issue_assignee is not None:
+        issue_key = issue['key']
+        issue_summary = issue['fields']['summary']
+        try:
+            jira_obj.assign_issue(issue_key)
+            logging.info(f"Issue {issue_key}: {issue_summary} - removed assignee because issue is done")
+        except Exception as exc:
+            logging.error(f"Error while updating issue {issue_key}: {exc}")
+
+
 if __name__ == '__main__':
     try:
         configure_logging()
@@ -130,6 +143,7 @@ if __name__ == '__main__':
         for recently_updated_issue in recently_updated_issues:
             strategy_add_components(recently_updated_issue, jira)
             strategy_add_labels(recently_updated_issue, jira)
+            strategy_remove_assignee_when_issue_is_done(recently_updated_issue, jira)
         logging.info(f"Issues organization completed successfully.")
     except Exception as e:
         logging.critical(f"Critical error occurred: {e}")
