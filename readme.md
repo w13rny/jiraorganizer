@@ -5,6 +5,7 @@ This simple script helps to organize and manage tasks in Jira:
 * adds "Backend" component for each task that has `[B]` in its name (summary)
 * adds "Frontend" component for each task that has `[F]` in its name (summary)
 * adds "designer" label for each task that has `[D]` in its name (summary) 
+* removes assignee when issue is done
 
 ## Installation & initial configuration
 
