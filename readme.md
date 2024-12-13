@@ -78,26 +78,3 @@ When you finish using the app on virtual environment, remember to deactivate it 
 ```commandline
 deactivate
 ```
-
-## Customize script
-
-At the beginning of the code in `main.py` there are 2 lists of tuples:
-
-```
-COMPONENTS = [
-    ("[B]", "Backend"),
-    ("[F]", "Frontend"),
-]
-
-LABELS = [
-    ("[D]", "designer"),
-]
-```
-
-Each tuple stands for:
-
-```
-("text to search in issue summary", "component/label name that will be added when text is found")
-```
-
-Once you know this formula, you can easily modify `COMPONENTS` and `LABELS` tables to customize the script.
